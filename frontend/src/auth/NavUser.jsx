@@ -13,11 +13,13 @@ export default function NavUser() {
     );
   }
 
+  const displayName = user.name || user.email || 'User';
+
   return (
     <div className="navbar-user">
-      <span className="navbar-username" title={user.username}>
-        <span className="navbar-avatar">{user.username[0].toUpperCase()}</span>
-        {user.username}
+      <span className="navbar-username" title={displayName}>
+        <span className="navbar-avatar">{displayName[0].toUpperCase()}</span>
+        {displayName}
       </span>
       <button onClick={logout} className="btn btn-sm btn-secondary">Logout</button>
     </div>

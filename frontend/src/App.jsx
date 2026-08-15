@@ -1,16 +1,42 @@
 import { BrowserRouter as Router, Routes, Route, Link, NavLink } from 'react-router-dom';
-import { AuthProvider } from './auth/AuthContext';
+import { AuthProvider, useAuth } from './auth/AuthContext';
 import NavUser from './auth/NavUser';
 import LoginPage from './auth/LoginPage';
 import RegisterPage from './auth/RegisterPage';
+import ProtectedRoute from './auth/ProtectedRoute';
+import RoleRoute from './auth/RoleRoute';
 import HomePage from './pages/HomePage';
-import RoutesPage from './pages/RoutesPage';
-import RouteDetailPage from './pages/RouteDetailPage';
-import SchedulesPage from './pages/SchedulesPage';
-import BookingPage from './pages/BookingPage';
-import BookingsListPage from './pages/BookingsListPage';
-import BookingDetailPage from './pages/BookingDetailPage';
 import DashboardPage from './pages/DashboardPage';
+import RequestRidePage from './pages/RequestRidePage';
+import RideHistoryPage from './pages/RideHistoryPage';
+import RiderDashboardPage from './pages/RiderDashboardPage';
+import PaymentsPage from './pages/PaymentsPage';
+import ComplaintsPage from './pages/ComplaintsPage';
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminCampuses from './pages/admin/AdminCampuses';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminRiders from './pages/admin/AdminRiders';
+import AdminFares from './pages/admin/AdminFares';
+import AdminRides from './pages/admin/AdminRides';
+import AdminPayments from './pages/admin/AdminPayments';
+import AdminComplaints from './pages/admin/AdminComplaints';
+
+function NavLinks() {
+  const { user } = useAuth();
+  return (
+    <div className="navbar-links">
+      <NavLink to="/" end>Home</NavLink>
+      <NavLink to="/dashboard">Dashboard</NavLink>
+      {user?.systemRole === 'rider' && <NavLink to="/rider">Rider Hub</NavLink>}
+      {user?.systemRole === 'admin' && <NavLink to="/admin">Admin</NavLink>}
+      <NavLink to="/request">Request Ride</NavLink>
+      <NavLink to="/trips">My Trips</NavLink>
+      <NavLink to="/payments">Payments</NavLink>
+      {user && <NavLink to="/complaints">Complaints</NavLink>}
+    </div>
+  );
+}
 
 function App() {
   return (
@@ -20,35 +46,87 @@ function App() {
         <nav className="navbar">
           <div className="navbar-inner">
             <Link to="/" className="navbar-brand">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z"/><path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z"/></svg>
-              CampusTransit
+              🏍️ Campus Boda
             </Link>
-            <div className="navbar-links">
-              <NavLink to="/" end>Home</NavLink>
-              <NavLink to="/routes">Routes</NavLink>
-              <NavLink to="/schedules">Schedule</NavLink>
-              <NavLink to="/bookings">Bookings</NavLink>
-              <NavLink to="/book">Book Now</NavLink>
-              <NavLink to="/dashboard">Dashboard</NavLink>
-            </div>
+            <NavLinks />
             <NavUser />
           </div>
         </nav>
         <main className="container">
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/routes" element={<RoutesPage />} />
-            <Route path="/routes/:id" element={<RouteDetailPage />} />
-            <Route path="/schedules" element={<SchedulesPage />} />
-            <Route path="/book" element={<BookingPage />} />
-            <Route path="/bookings" element={<BookingsListPage />} />
-            <Route path="/bookings/:id" element={<BookingDetailPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/rider"
+              element={
+                <RoleRoute role="rider">
+                  <RiderDashboardPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/request"
+              element={
+                <ProtectedRoute>
+                  <RequestRidePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trips"
+              element={
+                <ProtectedRoute>
+                  <RideHistoryPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payments"
+              element={
+                <ProtectedRoute>
+                  <PaymentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/complaints"
+              element={
+                <ProtectedRoute>
+                  <ComplaintsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <RoleRoute role="admin">
+                  <AdminLayout />
+                </RoleRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="campuses" element={<AdminCampuses />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="riders" element={<AdminRiders />} />
+              <Route path="fares" element={<AdminFares />} />
+              <Route path="rides" element={<AdminRides />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="complaints" element={<AdminComplaints />} />
+            </Route>
           </Routes>
         </main>
-        <footer className="footer"><p>© 2026 CampusTransit — Transport & Mobility Management</p></footer>
+        <footer className="footer">
+          <p>© 2026 Campus Boda — Campus Transport &amp; Ride-Hailing System</p>
+        </footer>
       </div>
       </AuthProvider>
     </Router>

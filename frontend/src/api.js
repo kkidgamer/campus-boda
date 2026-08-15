@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+// Campus Boda Express API (backend serves /api/v1 on port 5000 by default).
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5000/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -25,7 +26,7 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem('refresh_token');
       if (refreshToken) {
         try {
-          const res = await axios.post(`${API_BASE}/auth/token/refresh/`, {
+          const res = await axios.post(`${API_BASE}/auth/refresh`, {
             refresh: refreshToken,
           });
           localStorage.setItem('access_token', res.data.access);
@@ -42,25 +43,91 @@ api.interceptors.response.use(
   }
 );
 
-export const fetchRestaurants = () => api.get('/restaurants/').then(r => r.data);
-export const fetchRestaurant = (id) => api.get(`/restaurants/${id}/`).then(r => r.data);
-export const createRestaurant = (data) => api.post('/restaurants/', data).then(r => r.data);
-export const updateRestaurant = (id, data) => api.put(`/restaurants/${id}/`, data).then(r => r.data);
-export const deleteRestaurant = (id) => api.delete(`/restaurants/${id}/`).then(r => r.data);
+// ---- System ----
+export const fetchHealth = () => api.get('/health').then((r) => r.data);
 
-export const fetchMenuItems = (params) => api.get('/menu-items/', { params }).then(r => r.data);
-export const fetchMenuItem = (id) => api.get(`/menu-items/${id}/`).then(r => r.data);
-export const createMenuItem = (data) => api.post('/menu-items/', data).then(r => r.data);
+// ---- Auth (Phase 2 endpoints — /auth/*) ----
+export const loginUser = (data) => api.post('/auth/login', data).then((r) => r.data);
+export const registerUser = (data) => api.post('/auth/register', data).then((r) => r.data);
+export const fetchProfile = () => api.get('/auth/profile').then((r) => r.data);
 
-export const fetchOrders = (params) => api.get('/orders/', { params }).then(r => r.data);
-export const fetchOrder = (id) => api.get(`/orders/${id}/`).then(r => r.data);
-export const createOrder = (data) => api.post('/orders/', data).then(r => r.data);
-export const updateOrder = (id, data) => api.put(`/orders/${id}/`, data).then(r => r.data);
+// ---- Campuses ----
+export const fetchCampuses = () => api.get('/campuses').then((r) => r.data);
+export const fetchPickupPoints = (campusId) =>
+  api.get(`/campuses/${campusId}/pickup-points`).then((r) => r.data);
 
-export const fetchDeliveries = () => api.get('/deliveries/').then(r => r.data);
-export const fetchReviews = (params) => api.get('/reviews/', { params }).then(r => r.data);
-export const createReview = (data) => api.post('/reviews/', data).then(r => r.data);
+// ---- Fares ----
+export const fetchFareQuote = (params) => api.get('/fares/quote', { params }).then((r) => r.data);
+export const fetchCampusFare = (campusId) =>
+  api.get(`/fares/campus/${campusId}`).then((r) => r.data);
 
-export const fetchDashboard = () => api.get('/dashboard/').then(r => r.data);
+// ---- Passengers ----
+export const fetchPassengerProfile = (id) => api.get(`/passengers/${id}`).then((r) => r.data);
+export const updatePassengerProfile = (id, data) =>
+  api.put(`/passengers/${id}`, data).then((r) => r.data);
+
+// ---- Riders ----
+export const fetchRiderProfile = (id) => api.get(`/riders/${id}`).then((r) => r.data);
+export const fetchMyRiderProfile = () => api.get('/riders/me').then((r) => r.data);
+export const createRiderProfile = (data) => api.post('/riders', data).then((r) => r.data);
+export const updateRiderStatus = (data) =>
+  api.patch('/riders/me/status', data).then((r) => r.data);
+
+// ---- Rides ----
+export const requestRide = (data) => api.post('/rides', data).then((r) => r.data);
+export const fetchRides = (params) => api.get('/rides', { params }).then((r) => r.data);
+export const fetchRide = (id) => api.get(`/rides/${id}`).then((r) => r.data);
+export const fetchAvailableRides = () => api.get('/rides/available').then((r) => r.data);
+export const fetchActiveRide = () => api.get('/rides/active').then((r) => r.data);
+export const acceptRide = (id) => api.post(`/rides/${id}/accept`).then((r) => r.data);
+export const arriveRide = (id) => api.post(`/rides/${id}/arrive`).then((r) => r.data);
+export const startRide = (id) => api.post(`/rides/${id}/start`).then((r) => r.data);
+export const completeRide = (id, data) => api.post(`/rides/${id}/complete`, data).then((r) => r.data);
+export const cancelRide = (id) => api.post(`/rides/${id}/cancel`).then((r) => r.data);
+
+// ---- Payments ----
+export const fetchPayments = (params) => api.get('/payments', { params }).then((r) => r.data);
+export const initiatePayment = (data) => api.post('/payments', data).then((r) => r.data);
+export const simulateConfirmPayment = (id) =>
+  api.post(`/payments/${id}/simulate-confirm`).then((r) => r.data);
+
+// ---- Reviews / Complaints / Emergencies / Notifications ----
+export const fetchReviews = (params) => api.get('/reviews', { params }).then((r) => r.data);
+export const createReview = (data) => api.post('/reviews', data).then((r) => r.data);
+export const fetchComplaints = (params) => api.get('/complaints', { params }).then((r) => r.data);
+export const createComplaint = (data) => api.post('/complaints', data).then((r) => r.data);
+export const fetchEmergencies = (params) => api.get('/emergencies', { params }).then((r) => r.data);
+export const fetchNotifications = () => api.get('/notifications').then((r) => r.data);
+export const markNotificationRead = (id) =>
+  api.patch(`/notifications/${id}/read`).then((r) => r.data);
+
+// ---- Admin ----
+export const fetchAdminStats = () => api.get('/admin/stats').then((r) => r.data);
+
+export const fetchAdminCampuses = (params) => api.get('/admin/campuses', { params }).then((r) => r.data);
+export const createCampus = (data) => api.post('/admin/campuses', data).then((r) => r.data);
+export const updateCampus = (id, data) => api.put(`/admin/campuses/${id}`, data).then((r) => r.data);
+export const deleteCampus = (id) => api.delete(`/admin/campuses/${id}`).then((r) => r.data);
+
+export const fetchAdminPickupPoints = (params) => api.get('/admin/pickup-points', { params }).then((r) => r.data);
+export const createPickupPoint = (data) => api.post('/admin/pickup-points', data).then((r) => r.data);
+export const updatePickupPoint = (id, data) => api.put(`/admin/pickup-points/${id}`, data).then((r) => r.data);
+export const deletePickupPoint = (id) => api.delete(`/admin/pickup-points/${id}`).then((r) => r.data);
+
+export const fetchAdminUsers = (params) => api.get('/admin/users', { params }).then((r) => r.data);
+export const updateUserStatus = (id, data) => api.patch(`/admin/users/${id}/status`, data).then((r) => r.data);
+
+export const fetchAdminRides = (params) => api.get('/admin/rides', { params }).then((r) => r.data);
+export const fetchAdminPayments = (params) => api.get('/admin/payments', { params }).then((r) => r.data);
+
+export const fetchAdminComplaints = (params) => api.get('/admin/complaints', { params }).then((r) => r.data);
+export const updateComplaint = (id, data) => api.patch(`/admin/complaints/${id}`, data).then((r) => r.data);
+
+export const fetchAdminRiders = (params) => api.get('/admin/riders', { params }).then((r) => r.data);
+export const verifyRider = (userId, data) => api.patch(`/admin/riders/${userId}/verify`, data).then((r) => r.data);
+
+export const fetchAdminFares = () => api.get('/admin/fares').then((r) => r.data);
+export const createAdminFare = (data) => api.post('/admin/fares', data).then((r) => r.data);
+export const updateAdminFare = (campusId, data) => api.put(`/admin/fares/${campusId}`, data).then((r) => r.data);
 
 export default api;

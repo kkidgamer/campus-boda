@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import api from '../api';
+import api, { loginUser, registerUser, fetchProfile } from '../api';
+import { resetSocket } from '../socket';
 
 const AuthContext = createContext(null);
 
@@ -11,8 +12,8 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('access_token');
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      api.get('/auth/profile/')
-        .then(res => setUser(res.data))
+      fetchProfile()
+        .then((res) => setUser(res.user || res))
         .catch(() => {
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
@@ -24,30 +25,23 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const login = useCallback(async (username, password) => {
-    const res = await api.post('/auth/login/', { username, password });
-    localStorage.setItem('access_token', res.data.access);
-    localStorage.setItem('refresh_token', res.data.refresh);
-    api.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
-    const profile = await api.get('/auth/profile/');
-    setUser(profile.data);
-    return profile.data;
+  const login = useCallback(async (email, password) => {
+    resetSocket(); // ensure a fresh socket for the new session
+    const res = await loginUser({ email, password });
+    localStorage.setItem('access_token', res.access);
+    localStorage.setItem('refresh_token', res.refresh);
+    api.defaults.headers.common['Authorization'] = `Bearer ${res.access}`;
+    setUser(res.user);
+    return res.user;
   }, []);
 
   const register = useCallback(async (data) => {
-    const res = await api.post('/auth/register/', data);
-    return res.data;
+    const res = await registerUser(data);
+    return res;
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      const refresh = localStorage.getItem('refresh_token');
-      if (refresh) {
-        await api.post('/auth/token/blacklist/', { refresh });
-      }
-    } catch {
-      // Token may already be invalid; proceed with client-side cleanup
-    }
+    resetSocket(); // drop any socket bound to the previous session
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     delete api.defaults.headers.common['Authorization'];
