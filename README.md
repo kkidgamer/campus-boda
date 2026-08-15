@@ -50,9 +50,9 @@ frontend/src/
 ├── hooks/           useSocketEvents (subscribe to ride events)
 ├── auth/            AuthContext, Login, Register, ProtectedRoute, RoleRoute, NavUser
 ├── pages/           HomePage, DashboardPage, RequestRidePage, RideHistoryPage,
-│                    RiderDashboardPage, PaymentsPage, ComplaintsPage, admin/ (AdminLayout,
-│                    Dashboard, Campuses, Users, Riders, Fares, Rides, Payments,
-│                    Complaints)
+│                    RiderDashboardPage, PaymentsPage, ComplaintsPage, ProfilePage, admin/
+│                    (AdminLayout, Dashboard, Campuses, Users, Riders, Fares, Rides,
+│                    Payments, Complaints)
 ├── App.jsx
 └── main.jsx
 ```
@@ -93,8 +93,8 @@ npm run dev               # http://127.0.0.1:5173
 | 2. Architecture | 🟢 Express + MongoDB, passenger-centered data model |
 | 3. Backend foundation | 🟢 Foundation + all 12 models + `/api/v1` + health |
 | 4. Authentication | 🟢 Register, login, refresh tokens, protected routes, role checks |
-| 5. Passenger management | 🔴 |
-| 6. Rider verification | 🟢 Apply, motorcycle registration, admin approve/reject/suspend |
+| 5. Passenger management | 🟢 Passenger dashboard, profile editing, password change, emergency contacts |
+| 6. Rider verification | 🟢 Admin registers riders (account + documents + motorcycle); approve/reject/suspend |
 | 7. Campus locations | 🟢 Campus + pickup point models + full admin CRUD |
 | 8. Boda booking | 🟢 Request → accept → arrive → start → complete; cancel; rider matching |
 | 9. Fare engine | 🟢 Quote endpoint + breakdown, admin-managed rates, live quote in request UI |
@@ -160,7 +160,14 @@ Versioned under `/api/v1`.
 | POST | `/auth/refresh` | — | Exchange refresh token for a new pair |
 | GET | `/auth/profile` | Bearer | Current user |
 | POST | `/auth/logout` | — | Stateless logout (client discards tokens) |
-| POST | `/riders` | Bearer | Submit / update rider application (`nationalId`, `licenseNumber`) |
+| GET | `/users/me` | Bearer | Own profile incl. emergency contacts + campus name |
+| PUT | `/users/me` | Bearer | Update own profile (`name`, `phone`, `accountType`, `campusId`, `profilePhoto`) |
+| PATCH | `/users/me/password` | Bearer | Change password (`currentPassword`, `newPassword`) |
+| GET | `/users/me/emergency-contacts` | Bearer | Own emergency contacts |
+| POST | `/users/me/emergency-contacts` | Bearer | Add contact (`name`, `phone`, `relationship?`) |
+| PUT | `/users/me/emergency-contacts/:contactId` | Bearer | Update contact |
+| DELETE | `/users/me/emergency-contacts/:contactId` | Bearer | Delete contact |
+| POST | `/riders` | Bearer | Update own rider documents (`nationalId`, `licenseNumber`) — riders are registered by admins via `/admin/riders` |
 | GET | `/riders/me` | Bearer | Own rider profile + motorcycles |
 | PUT | `/riders/me` | Bearer | Update own rider profile (triggers re-verification) |
 | PATCH | `/riders/me/status` | Bearer | Toggle online/offline (`isOnline`) |
@@ -169,7 +176,10 @@ Versioned under `/api/v1`.
 | GET | `/motorcycles/me` | Bearer | Own motorcycles |
 | PUT `/ DELETE` | `/motorcycles/:id` | Bearer | Update/delete own motorcycle |
 | GET | `/admin/stats` | Admin | Dashboard summary counts + revenue |
-| GET | `/admin/riders?status=` | Admin | List rider applications (+ their motorcycles) |
+| GET | `/admin/riders?status=` | Admin | List riders (+ their motorcycles) |
+| POST | `/admin/riders` | Admin | Register a rider (`name`, `email`, `phone`, `password`, `nationalId?`, `licenseNumber?`, `motorcycle?`) — creates account + profile + optional motorcycle |
+| POST | `/admin/riders/:userId/motorcycles` | Admin | Add a motorcycle to a rider (`registrationNumber` required) |
+| DELETE | `/admin/riders/:userId/motorcycles/:motorcycleId` | Admin | Remove a motorcycle |
 | PATCH | `/admin/riders/:userId/verify` | Admin | `approved` \| `rejected` \| `suspended` |
 | GET | `/admin/users?status=&systemRole=&accountType=&q=` | Admin | All users (search by name/email/phone) |
 | PATCH | `/admin/users/:id/status` | Admin | Suspend / activate / deactivate a user |

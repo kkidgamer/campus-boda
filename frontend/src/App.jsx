@@ -12,6 +12,7 @@ import RideHistoryPage from './pages/RideHistoryPage';
 import RiderDashboardPage from './pages/RiderDashboardPage';
 import PaymentsPage from './pages/PaymentsPage';
 import ComplaintsPage from './pages/ComplaintsPage';
+import ProfilePage from './pages/ProfilePage';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminCampuses from './pages/admin/AdminCampuses';
@@ -34,6 +35,7 @@ function NavLinks() {
       <NavLink to="/trips">My Trips</NavLink>
       <NavLink to="/payments">Payments</NavLink>
       {user && <NavLink to="/complaints">Complaints</NavLink>}
+      {user && <NavLink to="/profile">Profile</NavLink>}
     </div>
   );
 }
@@ -102,6 +104,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ComplaintsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
                 </ProtectedRoute>
               }
             />

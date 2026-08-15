@@ -51,6 +51,19 @@ export const loginUser = (data) => api.post('/auth/login', data).then((r) => r.d
 export const registerUser = (data) => api.post('/auth/register', data).then((r) => r.data);
 export const fetchProfile = () => api.get('/auth/profile').then((r) => r.data);
 
+// ---- My profile (Phase 5 — /users/me) ----
+export const fetchMyProfile = () => api.get('/users/me').then((r) => r.data);
+export const updateMyProfile = (data) => api.put('/users/me', data).then((r) => r.data);
+export const changeMyPassword = (data) => api.patch('/users/me/password', data).then((r) => r.data);
+
+// ---- Emergency contacts ----
+export const fetchEmergencyContacts = () => api.get('/users/me/emergency-contacts').then((r) => r.data);
+export const addEmergencyContact = (data) => api.post('/users/me/emergency-contacts', data).then((r) => r.data);
+export const updateEmergencyContact = (contactId, data) =>
+  api.put(`/users/me/emergency-contacts/${contactId}`, data).then((r) => r.data);
+export const deleteEmergencyContact = (contactId) =>
+  api.delete(`/users/me/emergency-contacts/${contactId}`).then((r) => r.data);
+
 // ---- Campuses ----
 export const fetchCampuses = () => api.get('/campuses').then((r) => r.data);
 export const fetchPickupPoints = (campusId) =>
@@ -69,7 +82,6 @@ export const updatePassengerProfile = (id, data) =>
 // ---- Riders ----
 export const fetchRiderProfile = (id) => api.get(`/riders/${id}`).then((r) => r.data);
 export const fetchMyRiderProfile = () => api.get('/riders/me').then((r) => r.data);
-export const createRiderProfile = (data) => api.post('/riders', data).then((r) => r.data);
 export const updateRiderStatus = (data) =>
   api.patch('/riders/me/status', data).then((r) => r.data);
 
@@ -125,6 +137,11 @@ export const updateComplaint = (id, data) => api.patch(`/admin/complaints/${id}`
 
 export const fetchAdminRiders = (params) => api.get('/admin/riders', { params }).then((r) => r.data);
 export const verifyRider = (userId, data) => api.patch(`/admin/riders/${userId}/verify`, data).then((r) => r.data);
+export const createAdminRider = (data) => api.post('/admin/riders', data).then((r) => r.data);
+export const addRiderMotorcycle = (userId, data) =>
+  api.post(`/admin/riders/${userId}/motorcycles`, data).then((r) => r.data);
+export const deleteRiderMotorcycle = (userId, motorcycleId) =>
+  api.delete(`/admin/riders/${userId}/motorcycles/${motorcycleId}`).then((r) => r.data);
 
 export const fetchAdminFares = () => api.get('/admin/fares').then((r) => r.data);
 export const createAdminFare = (data) => api.post('/admin/fares', data).then((r) => r.data);

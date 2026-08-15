@@ -4,7 +4,7 @@ const TABS = [
   { to: '/admin', label: 'Dashboard', end: true },
   { to: '/admin/campuses', label: 'Campuses' },
   { to: '/admin/users', label: 'Users' },
-  { to: '/admin/riders', label: 'Rider Verification' },
+  { to: '/admin/riders', label: 'Riders' },
   { to: '/admin/fares', label: 'Fares' },
   { to: '/admin/rides', label: 'Rides' },
   { to: '/admin/payments', label: 'Payments' },

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import healthRoutes from './healthRoutes.js';
 import campusRoutes from './campusRoutes.js';
 import authRoutes from './authRoutes.js';
+import userRoutes from './userRoutes.js';
 import riderRoutes from './riderRoutes.js';
 import motorcycleRoutes from './motorcycleRoutes.js';
 import rideRoutes from './rideRoutes.js';
@@ -15,13 +16,14 @@ import adminRoutes from './adminRoutes.js';
  * API versioning — everything lives under /api/v1.
  *
  * Future resource routers (Phase 4+):
- *   /users, /passengers, /notifications
+ *   /passengers, /notifications
  */
 const router = Router();
 
 router.use('/health', healthRoutes);
 router.use('/campuses', campusRoutes);
 router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
 router.use('/riders', riderRoutes);
 router.use('/motorcycles', motorcycleRoutes);
 router.use('/rides', rideRoutes);

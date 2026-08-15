@@ -40,6 +40,12 @@ export function AuthProvider({ children }) {
     return res;
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const res = await fetchProfile();
+    setUser(res.user || res);
+    return res.user || res;
+  }, []);
+
   const logout = useCallback(async () => {
     resetSocket(); // drop any socket bound to the previous session
     localStorage.removeItem('access_token');
@@ -48,8 +54,7 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAuthenticated: !!user }}>
+  return (      <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

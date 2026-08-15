@@ -6,6 +6,7 @@ const PASSENGER_ACTIONS = [
   { icon: '🧾', title: 'Recent Trips', to: '/trips' },
   { icon: '💳', title: 'Payments', to: '/payments' },
   { icon: '⚠️', title: 'File a Complaint', to: '/complaints' },
+  { icon: '👤', title: 'My Profile', to: '/profile' },
 ];
 
 function DashboardPage() {

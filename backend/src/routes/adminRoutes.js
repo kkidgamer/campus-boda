@@ -2,6 +2,9 @@ import { Router } from 'express';
 import {
   listRiders,
   verifyRider,
+  createRider,
+  addRiderMotorcycle,
+  deleteRiderMotorcycle,
   listRides,
   listPayments,
   listFares,
@@ -37,6 +40,14 @@ router.get('/stats', getStats);
 
 // Riders
 router.get('/riders', listRiders);
+router.post(
+  '/riders',
+  requireFields('name', 'email', 'phone', 'password'),
+  validateEnum('accountType', ['student', 'staff', 'lecturer', 'visitor', 'contractor', 'other']),
+  createRider
+);
+router.post('/riders/:userId/motorcycles', requireFields('registrationNumber'), addRiderMotorcycle);
+router.delete('/riders/:userId/motorcycles/:motorcycleId', deleteRiderMotorcycle);
 router.patch(
   '/riders/:userId/verify',
   requireFields('status'),

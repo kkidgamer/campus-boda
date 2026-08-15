@@ -124,7 +124,7 @@ export default function RiderDashboardPage() {
         <div className="card-body">
           <h3 className="card-title">No rider profile yet</h3>
           <p style={{ color: 'var(--text-light)' }}>
-            Apply as a rider first — an admin will verify your documents.
+            Your rider account hasn't been fully set up yet — contact an administrator.
           </p>
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function RiderDashboardPage() {
         <div>
           <h2>🏍️ Rider Dashboard</h2>
           <p style={{ color: 'var(--text-muted)' }}>
-            {isApproved ? 'Accept rides and earn.' : 'Your application is pending admin verification.'}
+            {isApproved ? 'Accept rides and earn.' : 'Your rider profile is pending verification by an administrator.'}
           </p>
           {isApproved && (
             <p style={{ fontSize: '0.9rem', color: 'var(--text-light)', marginTop: 4 }}>
@@ -164,7 +164,7 @@ export default function RiderDashboardPage() {
         <div className="card"><div className="card-body">
           <StatusBadge status={profile.verificationStatus} />
           <p style={{ color: 'var(--text-light)', marginTop: 12 }}>
-            You'll be able to accept rides once an admin approves your rider application.
+            You'll be able to accept rides once an administrator verifies your rider profile.
           </p>
         </div></div>
       ) : (

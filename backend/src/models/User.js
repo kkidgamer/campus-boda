@@ -20,6 +20,16 @@ const userSchema = new mongoose.Schema(
     profilePhoto: { type: String, default: '' },
     status: { type: String, enum: ['active', 'suspended', 'deactivated'], default: 'active' },
     verified: { type: Boolean, default: false },
+    emergencyContacts: {
+      type: [
+        {
+          name: { type: String, required: [true, 'Contact name is required'], trim: true },
+          phone: { type: String, required: [true, 'Contact phone is required'], trim: true },
+          relationship: { type: String, trim: true, default: '' },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );

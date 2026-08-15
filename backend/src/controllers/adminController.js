@@ -134,6 +134,136 @@ export const verifyRider = asyncHandler(async (req, res) => {
   });
 });
 
+/* ------------------------------------------------------------------ */
+/* Rider registration (admin registers riders — they do not self-apply) */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Register a rider directly (admin-driven — riders do not self-apply).
+ * Body: {
+ *   name, email, phone, password,
+ *   accountType?, campusId?,
+ *   nationalId?, licenseNumber?, licenseDocument?, profilePhoto?,
+ *   motorcycle?: { registrationNumber, make?, model?, color?, year? }
+ * }
+ * Creates the user account (systemRole: rider, verified) plus the rider
+ * profile and an optional motorcycle. Since the admin vets the documents
+ * at registration, the profile is created as approved.
+ */
+export const createRider = asyncHandler(async (req, res) => {
+  const { name, email, phone, password, accountType, campusId } = req.body;
+  const { nationalId, licenseNumber, licenseDocument, profilePhoto, motorcycle } = req.body;
+
+  const existing = await User.findOne({ email: String(email).toLowerCase() });
+  if (existing) {
+    return res.status(409).json({ error: { message: 'An account with this email already exists' } });
+  }
+
+  if (campusId) {
+    const { error } = await resolveCampusId(campusId);
+    if (error) {
+      return res.status(400).json({ error: { message: error } });
+    }
+  }
+
+  const user = await User.create({
+    name,
+    email,
+    phone,
+    password,
+    accountType: accountType || 'other',
+    campusId: campusId || null,
+    systemRole: 'rider',
+    verified: true,
+  });
+
+  const profile = await RiderProfile.create({
+    userId: user._id,
+    nationalId: nationalId || '',
+    licenseNumber: licenseNumber || '',
+    licenseDocument: licenseDocument || '',
+    profilePhoto: profilePhoto || '',
+    verificationStatus: 'approved',
+  });
+
+  let createdMotorcycle = null;
+  if (motorcycle && motorcycle.registrationNumber) {
+    try {
+      createdMotorcycle = await Motorcycle.create({
+        riderId: user._id,
+        registrationNumber: motorcycle.registrationNumber,
+        make: motorcycle.make || '',
+        model: motorcycle.model || '',
+        color: motorcycle.color || '',
+        year: motorcycle.year || null,
+        verificationStatus: 'approved',
+      });
+    } catch (err) {
+      // Duplicate registration number — roll back the rider account.
+      await Promise.all([User.findByIdAndDelete(user._id), RiderProfile.deleteOne({ userId: user._id })]);
+      if (err.code === 11000) {
+        return res.status(409).json({
+          error: { message: `A motorcycle with registration ${motorcycle.registrationNumber} already exists` },
+        });
+      }
+      throw err;
+    }
+  }
+
+  return res.status(201).json({
+    message: 'Rider registered successfully',
+    user: { id: user._id, name: user.name, email: user.email, phone: user.phone },
+    rider: { id: profile._id, verificationStatus: profile.verificationStatus },
+    motorcycle: createdMotorcycle,
+  });
+});
+
+/**
+ * Add a motorcycle to an existing rider.
+ * Body: { registrationNumber, make?, model?, color?, year? }
+ * New motorcycles are approved immediately (admin vetted the rider).
+ */
+export const addRiderMotorcycle = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const profile = await RiderProfile.findOne({ userId });
+  if (!profile) {
+    return res.status(404).json({ error: { message: 'Rider not found' } });
+  }
+  const { registrationNumber } = req.body;
+  if (!registrationNumber) {
+    return res.status(400).json({ error: { message: 'registrationNumber is required' } });
+  }
+  try {
+    const motorcycle = await Motorcycle.create({
+      riderId: userId,
+      registrationNumber,
+      make: req.body.make || '',
+      model: req.body.model || '',
+      color: req.body.color || '',
+      year: req.body.year || null,
+      verificationStatus: 'approved',
+    });
+    return res.status(201).json({ message: 'Motorcycle added', motorcycle });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({
+        error: { message: `A motorcycle with registration ${registrationNumber} already exists` },
+      });
+    }
+    throw err;
+  }
+});
+
+/** Remove a motorcycle from a rider. */
+export const deleteRiderMotorcycle = asyncHandler(async (req, res) => {
+  const { userId, motorcycleId } = req.params;
+  const motorcycle = await Motorcycle.findOneAndDelete({ _id: motorcycleId, riderId: userId });
+  if (!motorcycle) {
+    return res.status(404).json({ error: { message: 'Motorcycle not found' } });
+  }
+  return res.json({ message: 'Motorcycle removed' });
+});
+
 /** List all rides, optionally filtered by status (admin). */
 export const listRides = asyncHandler(async (req, res) => {
   const { status } = req.query;
